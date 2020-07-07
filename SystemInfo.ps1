@@ -1,48 +1,51 @@
-﻿
-
+﻿    
+     $MajorVersion= (Get-Host).Version.Major
      $filepath ="C:\SYS_INFO\SYSTEM_INFORMATION.txt"
      $dirpath ="C:\SYS_INFO"
+     $PrintVersion= "PowerShell Version: " + $MajorVersion
+     $UpdateNotification = "WARNING: Seems like you are running a lower version of PowerShell, Some of the commands might not work. Upgrade to verison 5 and above to get all the system details."
+     $PrintVersion
 
+     ## Checking if verison is less than required
 
+     if($MajorVersion -lt 5)
+     {
+            $UpdateNotification
+     }
+
+     ""
      #Check for the directory
 
      if(![System.IO.Directory]::Exists($dirpath))
      {
-            "Creating directory"
-            
+            "Creating directory"     
             New-Item -Path "C:\" -Name "SYS_INFO" -ItemType "directory"
-
      }
 
-    
     #Checking for the file
 
     if(![System.IO.File]::Exists($filepath))
     {
-            "Creating file"
-        
+                "Creating file"        
             New-Item -path 'C:\SYS_INFO' -name SYSTEM_INFORMATION.txt -type file -Force
-
     }
-
 
     if([System.IO.Directory]::Exists($dirpath) -and [System.IO.File]::Exists($filepath))
     {
-          
+        
+         try
+          {
 
             $SysInfo ="C:\SYS_INFO\SYSTEM_INFORMATION.txt"
             $Start ="Fetching system details:"
             $Done= "Script execution completed. You can find the file here:"
 
-
             #Writing contents to the file
 
             ""
-
             $Start
 
-            ""
-    
+            ""  
             "RAM"
 
             "-----------RAM--------------" | Out-File $SysInfo
@@ -118,8 +121,16 @@
            ""
             $Done
             $SysInfo
-
             Write-Host "Press any key to exit."
             $x = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+
+            }
+        
+       catch [Exception]
+       {
+          echo $_.Exception.GetType().FullName, $_.Exception.Message
+          Write-Host "Press any key to exit."
+            $x = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+       }
 
     }
