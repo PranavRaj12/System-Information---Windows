@@ -1,4 +1,4 @@
-﻿    
+﻿     
      $MajorVersion= (Get-Host).Version.Major
      $filepath ="C:\SYS_INFO\SYSTEM_INFORMATION.txt"
      $dirpath ="C:\SYS_INFO"
@@ -45,84 +45,77 @@
             ""
             $Start
 
-            ""  
+            ""
             "RAM"
 
             "-----------RAM--------------" | Out-File $SysInfo
 
-            Get-WmiObject win32_physicalmemory | Format-List * | Out-File $SysInfo -Append
+            Get-WmiObject win32_physicalmemory | Format-List Manufacturer,Name,PartNumber,Speed, @{n="Capacity(GB)";e={[math]::Round($_.Capacity/1GB,2)}} ,BankLabel,MaxVoltage,MinVoltage | Out-File $SysInfo -Append
 
             Add-Content $SysInfo "-----------BIOS--------------"
 
             "BIOS"
 
-            Get-WmiObject -Class Win32_BIOS | Format-List * | Out-File $SysInfo -Append
+            Get-WmiObject -Class Win32_BIOS | Format-List Name,BIOSVersion,CurrentLanguage,Manufacturer,Version | Out-File $SysInfo -Append
 
             Add-Content $SysInfo "-----------CPU--------------"
 
             "CPU"
 
-            Get-WmiObject Win32_Processor | Format-List * | Out-File $SysInfo -Append
+            Get-WmiObject Win32_Processor | Format-List Manufacturer,Name,NumberOfCores,NumberOfEnabledCore,NumberOfLogicalProcessors,ThreadCount,VirtualizationFirmwareEnabled,
+            DeviceID,LoadPercentage,Status,AddressWidth,DataWidth,L2CacheSize,L3CacheSize,MaxClockSpeed,Caption| Out-File $SysInfo -Append
 
             Add-Content $SysInfo "-----------GPU--------------"
 
             "GPU"
 
-            Get-CimInstance CIM_VideoController | Format-List Caption,Description,DeviceID,SystemName,VideoMemoryType,VideoProcessor,AdapterCompatibility,AdapterDACType,AdapterRAM,DriverDate,DriverVersion |Out-File $SysInfo -Append
+            Get-CimInstance CIM_VideoController | Format-List Caption,Description,DeviceID,SystemName,VideoMemoryType,VideoProcessor,AdapterCompatibility,
+            AdapterDACType,@{n="Capacity(GB)";e={[math]::Round($_.AdapterRAM/1GB,2)}},DriverDate,DriverVersion |Out-File $SysInfo -Append
 
             Add-Content $SysInfo "-----------COMPUTER--------------"
 
             "COMPUTER SYSTEM"
 
-            Get-CimInstance CIM_ComputerSystem | Format-List * | Out-File $SysInfo -Append
+            Get-CimInstance CIM_ComputerSystem | Format-List BootupState,Status,PrimaryOwnerName,Manufacturer,Model,UserName,Roles,Domain,HypervisorPresent,InfraredSupported | Out-File $SysInfo -Append
 
             Add-Content $SysInfo "-----------STORAGE--------------"
 
             "STORAGE"
 
-            Get-PhysicalDisk | Format-List * | Out-File $SysInfo -Append
+            Get-PhysicalDisk | Format-List UniqueId,FriendlyName,HealthStatus,Model,OperationalStatus,@{n="AllocatedSize(GB)";e={[math]::Round($_.AllocatedSize/1GB,3)}},
+            MediaType,BusType,@{n="Capacity(GB)";e={[math]::Round($_.Size/1GB,3)}},ClassName | Out-File $SysInfo -Append
+        
+
+            Get-PSDrive | Out-File $SysInfo -Append
 
             "OPERATING SYSTEM"
 
             Add-Content $SysInfo "-----------OPERATING SYSTEM--------------"
 
-            Get-CimInstance Win32_OperatingSystem | Format-List * | Out-File $SysInfo -Append
-
-            Add-Content $SysInfo "-----------INSTALLED APPLICATIONS--------------"
-
-            "INSTALLED APPLICATION"
-
-            Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Format-Table –AutoSize | Out-File $SysInfo -Append
+            Get-CimInstance Win32_OperatingSystem | Format-List Status,Name,FreePhysicalMemory,FreeSpaceInPagingFiles,Caption,InstallDate,LastBootUpTime,NumberOfUsers,BuildNumber,
+            BuildType,EncryptionLevel,OSArchitecture,RegisteredUser,SerialNumber | Out-File $SysInfo -Append
 
             Add-Content $SysInfo "-----------NETWORK ADAPTERS--------------"
 
             "NETWORK ADAPTERS"
 
-            Get-NetAdapter -Name ethernet |Format-List * | Out-File $SysInfo -Append
-
-            Add-Content $SysInfo "-----------PC FAN DETAILS--------------"
-        
-            "SYSTEM FANS"
-
-            Get-CimInstance -ClassName Win32_Fan -Property * | Out-File $SysInfo -Append
+            Get-NetAdapter -Name ethernet |Format-List MacAddress,Status,LinkSpeed,DriverInformation,InterfaceAlias,DeviceID,DriverDate,DriverName,DriverProvider,InterfaceDescription,
+            InterfaceType | Out-File $SysInfo -Append
 
             Add-Content $SysInfo "-----------BATTERY DETAILS--------------"
     
             "BATTERY"
 
-            Get-WmiObject -class Win32_Battery |Format-List * | Out-File $SysInfo -Append
+            Get-WmiObject -class Win32_Battery |Format-List Caption,Chemistry,Description,Status,PowerManagementSupported,EstimatedRunTime,EstimatedChargeRemaining | Out-File $SysInfo -Append
 
-            Add-Content $SysInfo "-----------DEVICE DRIVERS--------------"
+            Add-Content $SysInfo "-----------DISPLAY DETAILS--------------"
+    
+            "DISPLAY"
 
-            "DEVICE DRIVERS"
+            Get-WmiObject win32_desktopmonitor | Out-File $SysInfo -Append
 
-            Get-WmiObject Win32_PnPSignedDriver| select DeviceName, Manufacturer, DriverVersion |Format-List * | Out-File $SysInfo -Append
-
-           ""
-            $Done
-            $SysInfo
-            Write-Host "Press any key to exit."
-            $x = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            
+            Invoke-Item $filepath
 
             }
         
